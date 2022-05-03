@@ -34,8 +34,12 @@ router.post('/create', [
     check('project_id', 'Project ID is required').not().isEmpty(),
     check('departments', 'Departmens is required').not().isEmpty(),
     check('ticket_types', 'Ticket types is required').not().isEmpty(),
+    check('statuses', 'Statuses is required').not().isEmpty(),
+    check('urgencies', 'Urgencies types is required').not().isEmpty(),
     check('departments', 'Departments should be an array').isArray(),
     check('ticket_types', 'ticket_types should be an array').isArray(),
+    check('statuses', 'Statuses should be an array').isArray(),
+    check('urgencies', 'Urgencies should be an array').isArray(),
     validateFields
 ], createProject)
 

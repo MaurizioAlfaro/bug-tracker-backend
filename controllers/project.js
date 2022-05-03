@@ -15,6 +15,9 @@ const createProject = async(req, res = response) => {
         // Obtained from the JWT
         project.leader = req.uid
 
+        // Initialize the ticket counter to 0
+        project.ticket_count = 0
+
         // Tries to save project into db
         let savedProject = await project.save()
 

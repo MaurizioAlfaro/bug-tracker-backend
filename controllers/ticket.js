@@ -130,7 +130,7 @@ const updateTicket = async(req, res = response) => {
     // with the JWT
     const uid = req.uid
 
-    if(req.body.type === 'comment') {
+    if(req.body.update.type === 'COMMENT') {
         req.body.comments[0].user = {
             uid,
             name: req.name

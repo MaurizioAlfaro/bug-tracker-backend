@@ -23,6 +23,14 @@ const ProjectSchema = Schema({
         type: Array,
         required: true
     },
+    statuses: {
+        type: Array,
+        required: true,
+    },
+    urgencies: {
+        type: Array,
+        required: true
+    },
     colleagues: [{
         type: Schema.Types.ObjectId,
         ref: 'User',
