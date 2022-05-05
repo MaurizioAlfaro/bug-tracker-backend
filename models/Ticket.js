@@ -53,6 +53,10 @@ const TicketSchema = Schema({
         text: {
             type: String,
             required: true
+        },
+        image_url: {
+            type: String,
+            required: false
         }
     }],
     user: {
