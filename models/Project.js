@@ -47,7 +47,26 @@ const ProjectSchema = Schema({
     ticket_count: {
         type: Number,
         required: true
-    }
+    },
+    version_control: [{
+        update_id: {
+            type: Number,
+            required: true
+        },
+        update_type: {
+            type: String,
+            required: true
+        },
+        update_user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        ticket_id: {
+            type: Schema.Types.ObjectId,
+            ref: 'Ticket',
+        }
+    }],
+    
 })
 
 // Override one method of ProjectSchema to return a new object with id instead of _id

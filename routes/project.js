@@ -13,7 +13,8 @@ const {
         readProjects, 
         updateProject, 
         deleteProject,
-        joinProject
+        joinProject,
+        compareProject
      } = require('../controllers/project')
 
 // Import custom middlewares to handle errors and validations
@@ -56,6 +57,9 @@ router.put('/:id', updateProject)
 // *** Handle project deletion
 // (Finds and deletes a project that matches the id in the url parameters)
 router.delete('/:id', deleteProject)
+
+// *** Handle project version control
+router.get('/control/:project_id/:version_control', compareProject)
 
 // *** Handle project joining
 // Joins a project given a project_id not an internal db id

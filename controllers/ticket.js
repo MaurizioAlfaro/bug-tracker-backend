@@ -3,6 +3,7 @@ const Ticket = require('../models/Ticket')
 const Project = require('../models/Project');
 const { addTID, addStoryline, addUpdateToStoryline } = require("../helpers/ticket");
 const Storyline = require("../models/Storyline");
+const { updateVersionControl } = require("../helpers/project");
 
 // *** Creates a new ticket and saves it to the db
 const createTicket = async(req, res = response) => {
@@ -14,7 +15,6 @@ const createTicket = async(req, res = response) => {
         // Sets the user reference to the active uid in request
         // that was obtained with the JWT
         ticket.user = req.uid
-
         
         // Add storyline object to ticket
         await addStoryline(ticket, req)
@@ -25,10 +25,20 @@ const createTicket = async(req, res = response) => {
         // Waits for the new ticket to be saved in the db
         const savedTicket = await ticket.save()
 
+        // Updates version control so other users
+        // can know that there has been an update
+        const update_id = await updateVersionControl(
+            savedTicket.project, 
+            savedTicket._id,
+            "CREATE TICKET",
+            savedTicket.user
+        )
+
         // Returns successful response with saved ticket embedded
         return res.status(200).json({
             ok: true,
-            msg: savedTicket
+            msg: savedTicket,
+            update_id
         })
     } catch(err) {
         // Return error response if something went wrong
@@ -78,10 +88,20 @@ const deleteTicket = async(req, res = response) => {
         // Finds and delete the ticket corresponding with that id
         const deletedTicket = await Ticket.findByIdAndDelete(id)
 
+        // Updates version control so other users
+        // can know that there has been an update
+        const update_id = await updateVersionControl(
+            deletedTicket.project, 
+            deletedTicket._id,
+            "DELETE TICKET",
+            uid
+        )
+
         // Returns a positive response and the deleted ticket
         return res.status(200).json({
             ok: true,
-            deletedTicket
+            deletedTicket,
+            update_id
         })
 
     } catch (error) {
@@ -93,7 +113,7 @@ const deleteTicket = async(req, res = response) => {
     }
 }
 
-// Retrieves all tickets from a specific user on a project
+// Retrieves all tickets from a specific project
 const readTickets = async(req, res = response) => {
     // Sets uid as the uid in the request, which was obtained
     // with the JWT
@@ -104,9 +124,8 @@ const readTickets = async(req, res = response) => {
 
     // Tries to retrieve all tickets with a reference to that uid
     try {
-        // Finds all tickets that match their user object to the uid and
-        // the project to the current project
-        const tickets = await Ticket.find({user: uid, project:project_id}).exec()
+        // Finds all tickets that match their the project
+        const tickets = await Ticket.find({project:project_id}).exec()
 
         // Returns a positive response and an array of tickets found
         return res.status(200).json({
@@ -177,10 +196,22 @@ const updateTicket = async(req, res = response) => {
 
         const updatedTicket = await addUpdateToStoryline(ticket, req)
 
+
+        // Updates version control so other users
+        // can know that there has been an update
+        const update_id = await updateVersionControl(
+            updatedTicket.project, 
+            updatedTicket._id,
+            "UPDATE TICKET",
+            uid
+        )
+
+
         // Returns positive response with the updated ticket in it
         return res.status(200).json({
             ok: true,
-            updatedTicket
+            updatedTicket,
+            update_id
         })
         
     } catch (error) {

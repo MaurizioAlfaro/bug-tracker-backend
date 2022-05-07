@@ -33,7 +33,7 @@ router.post('/create', [
 ], createTicket)
 
 // *** Handle ticket reading 
-// (Reads and retrieves all tickets from specific user)
+// (Reads and retrieves all tickets from specific project)
 router.get('/:project_id', readTickets)
 
 // *** Handle ticket updating

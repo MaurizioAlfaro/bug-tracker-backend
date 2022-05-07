@@ -1,13 +1,16 @@
 const { response } = require("express");
 const { formatProject } = require("../helpers/user");
 const Project = require("../models/Project");
+const Ticket = require("../models/Ticket");
 const User = require("../models/User");
 
 // Creates a new project with the leader set to the user
 const createProject = async(req, res = response) => {
     // Create a new project with the information inside the request's body
-
     const project = new Project(req.body)   
+
+    // Get uid from request
+    const uid = req.uid
 
     // Tries to save the project
     try {
@@ -17,6 +20,13 @@ const createProject = async(req, res = response) => {
 
         // Initialize the ticket counter to 0
         project.ticket_count = 0
+
+        // Initialize version control to 0
+        project.version_control = [{
+            update_id: 0,
+            update_type: 'MAIN',
+            update_user: uid
+        }]
 
         // Tries to save project into db
         let savedProject = await project.save()
@@ -212,9 +222,11 @@ const joinProject = async(req, res = response) => {
         project_id
     }
 
+    console.log(req.body)
+    console.log(req.params)
+
     try {
         const project = await Project.findOne(filter)
-
         if(project.password !== password) {
             return res.status(401).json({
                 ok: false,
@@ -228,23 +240,83 @@ const joinProject = async(req, res = response) => {
                 uid
             ]
         }
-
-        const joinedProject = await Project.findOneAndUpdate(filter, update, {
+        
+        let joinedProject = await Project.findOneAndUpdate(filter, update, {
             new: true
         }) 
-
+        
         // Format project to return leader's and colleagues' name
         joinedProject = await formatProject(joinedProject)
-
+        
         return res.status(200).json({
             ok: true,
             joinedProject
         })
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             ok: false,
             msg: 'Error while joining project'
+        })
+    }
+}
+
+// Handles version control of the project to see if it 
+// has been updated or not. If it has it returns all the
+// tickets that were updated.
+
+// For now it just returns all tickets from project tho
+const compareProject = async(req, res = response) => {
+
+    const _id = req.params.project_id
+    const version_control = Number(req.params.version_control)
+
+    try {
+        const project = await Project.findById({_id})
+
+        const version_diff = Math.abs(version_control - project.version_control[0].update_id)
+        if(version_diff === 0) {
+            return res.status(200).json({
+                ok: true,
+                has_updated: false
+            })
+        }
+
+        
+        let version_control_updates = [];
+        let tickets = []
+        let ticket_deletes = []
+
+        for (let i = 0; i < version_diff; i++) {
+            version_control_updates.push(project.version_control[0 + i])
+
+            tickets.push(version_control_updates[i].ticket_id)
+            if(version_control_updates[i].update_type === "DELETE TICKET") {
+                ticket_deletes.push(version_control_updates[i].ticket_id)
+            }
+        }
+
+        const ticket_ids = new Array(...new Set(tickets))
+
+        const ticket_updates = await Ticket.find({
+            _id: ticket_ids
+        })
+
+
+        return res.status(200).json({
+            ok: true,
+            has_updated: true,
+            ticket_updates,
+            version_control_updates,
+            ticket_deletes
+        })
+        
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            ok: false,
+            msg: 'Error while doing version control'
         })
     }
 }
@@ -255,5 +327,6 @@ module.exports = {
     readProjects,
     updateProject,
     deleteProject,
-    joinProject
+    joinProject,
+    compareProject
 }
