@@ -179,15 +179,26 @@ const updateTicket = async(req, res = response) => {
         if(!ticket) {
             return res.status(404).json({
                 ok: false,
-                msg: "Error while updating ticket"
+                msg: "No ticket found with that id"
             })
         }
 
-        // If ticket's user doesn't match uid, then return an error response
-        if(ticket.user.toString() !== uid) {
+
+        // If ticket's project does not contain uid as the leader or a colleague
+        // then return an error response
+        const project = await Project.findById(ticket.project)
+
+        // Leader and colleagues are stored as uid references only and not as
+        // objects with the name
+        const participants = [
+            project.leader.toString(),
+            ...project.colleagues.map(uid => uid.toString())
+        ]
+
+        if(!participants.includes(uid)) {
             return res.status(401).json({
                 ok: false,
-                msg: "Error while updating ticket"
+                msg: "User is not a team member"
             })
         }
 
