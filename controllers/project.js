@@ -70,7 +70,6 @@ const readProjects = async(req, res = response) => {
 
         // Find projects where user is a colleague
         const asColleague = await Project.find({colleagues: uid}).exec()
-
         const asColleagueFormatted = []
 
         for(let i = 0; i < asColleague.length; i++) {
@@ -81,10 +80,10 @@ const readProjects = async(req, res = response) => {
         // If there are no projects, it will return an empty array
         return res.status(200).json({
             ok: true,
-            projects: {
-                asLeader: asLeaderFormatted,
-                asColleague: asColleagueFormatted
-            }
+            projects: [
+                ...asLeaderFormatted,
+                ...asColleagueFormatted
+            ]
         })
 
     } catch (error) {

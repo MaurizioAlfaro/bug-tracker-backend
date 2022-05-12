@@ -1,3 +1,4 @@
+const Ticket = require("../models/Ticket")
 const User = require("../models/User")
 
 const formatProject = async(project) => { 
@@ -11,13 +12,16 @@ const formatProject = async(project) => {
         })
     }
 
+    const tickets = await Ticket.find({project: project._id})
+
     return {
         ...project._doc,
         leader: {
             name: (await User.findById(project.leader)).name,
             uid: project.leader
         },
-        colleagues: formattedColleagues
+        colleagues: formattedColleagues,
+        tickets
     }
 }
 
