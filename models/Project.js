@@ -64,7 +64,11 @@ const ProjectSchema = Schema({
         ticket_id: {
             type: Schema.Types.ObjectId,
             ref: 'Ticket',
-        }
+        },
+        read_by: [{
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     }],
     
 })

@@ -25,7 +25,8 @@ const createProject = async(req, res = response) => {
         project.version_control = [{
             update_id: 0,
             update_type: 'MAIN',
-            update_user: uid
+            update_user: uid,
+            read_by: [uid]
         }]
 
         // Tries to save project into db
@@ -320,6 +321,83 @@ const compareProject = async(req, res = response) => {
     }
 }
 
+const readNotification = async(req, res = response) => {
+    const project_id = req.params.project_id
+    const update_id = Number(req.params.update_id)
+    const uid = req.uid
+
+    try {
+        const project = await Project.findById(project_id)
+
+        // Check if project exists
+        if (!project) {
+            return res.status(404).json({
+                ok: false,
+                msg: "Error while reading notification. No such project found"
+            })
+        }
+
+        // Check is user is the project leader or a colleague
+        if(project.leader.toString() !== uid && project.colleagues.filter(colleague => {
+            return colleague.toString() === uid
+        }).length === 0) {
+            return res.status(401).json({
+                ok: false,
+                msg: "Error while reading notification. You are not autorized."
+            })
+        }
+
+        const update = project.version_control.filter(update => {
+                return update.update_id === update_id
+            })
+
+            
+        // Check if there is an update with that id
+        if (update.length === 0) {
+            return res.status(404).json({
+                ok: false,
+                msg: "Error while reading notification. No update with that id"
+            })
+        }
+
+        // Check if user has already read a notification
+        if (update[0].read_by.includes(uid)) {
+            return res.status(400).json({
+                ok: false,
+                msg: "Error while reading notification. You already read that update"
+            })
+        }
+
+        // Generate new version to update project with
+        const newUpdateState = project.version_control.map(update => {
+            return update.update_id === update_id ? {
+                ...update._doc,
+                read_by: [
+                    ...update._doc.read_by,
+                    uid
+                ] 
+            } : update
+        })
+
+        // Find project and update it
+        await Project.findByIdAndUpdate(project_id, {version_control: newUpdateState})
+            
+        // Return a successful response
+        return res.status(200).json({
+            ok: true,
+            newUpdateState,
+        })
+
+        
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            ok: false,
+            msg: "Error while reading notification"
+        })
+    }
+}
+
 // Export CRUD functions for projects
 module.exports = {
     createProject,
@@ -327,5 +405,6 @@ module.exports = {
     updateProject,
     deleteProject,
     joinProject,
-    compareProject
+    compareProject,
+    readNotification
 }
