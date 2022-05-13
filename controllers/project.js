@@ -130,16 +130,15 @@ const updateProject = async(req, res = response) => {
         if(!project) {
             return res.status(404).json({
                 ok: false,
-                msg: 'Error while updating project'
+                msg: 'Error while updating project. No project matching that id.'
             })
         }
 
-        // If found project does not belong to the user or user is not
-        // in the colleagues array, return error response
-        if(project.leader.toString() !== uid && !project.colleagues.some(user => user.toString() === uid)) {
+        // If found project does not belong to the user (meaning user !== leader)
+        if(project.leader.toString() !== uid) {
             return res.status(401).json({
                 ok: false,
-                msg: 'Error while updating project'
+                msg: 'Error while updating project. You are not the leader of the project.'
             })
         }
 
