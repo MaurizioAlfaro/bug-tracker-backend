@@ -223,15 +223,38 @@ const joinProject = async(req, res = response) => {
         project_id
     }
 
-    console.log(req.body)
-    console.log(req.params)
-
     try {
         const project = await Project.findOne(filter)
+
+        // Check if project exists
+        if(!project) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Error while joining project. No project matching that id.'
+            })
+        }
+
+        // Check if passwords match
         if(project.password !== password) {
             return res.status(401).json({
                 ok: false,
-                msg: 'Error while joining project'
+                msg: 'Error while joining project. Passwords do not match.'
+            })
+        }
+        
+        // Check if user is leader of the project
+        if(project.leader.toString() === uid) {
+            return res.status(412).json({
+                ok: false,
+                msg: 'Error while joining project. You can not join a project you own.'
+            })
+        }
+
+        // Check if user is a colleague on the project
+        if(project.colleagues.toString().includes(uid)) {
+            return res.status(412).json({
+                ok: false,
+                msg: 'Error while joining project. You are already a colleague on that project.'
             })
         }
         
