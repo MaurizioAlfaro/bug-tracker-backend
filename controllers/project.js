@@ -148,7 +148,8 @@ const updateProject = async(req, res = response) => {
         // Return successful response with the updated project embedded
         return res.status(200).json({
             ok: true,
-            updatedProject
+            // Right now we don't need to know the new state of the project
+            // updatedProject
         })
     } catch (error) {
         // If anything goes wrong, return an error response
