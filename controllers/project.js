@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs/dist/bcrypt");
 const { response } = require("express");
 const { formatProject } = require("../helpers/user");
 const Project = require("../models/Project");
@@ -28,6 +29,12 @@ const createProject = async(req, res = response) => {
             update_user: uid,
             read_by: [uid]
         }]
+
+        // Generate salt to add to password before encryption
+        const salt = bcrypt.genSaltSync()
+
+        // Set projects's password to the hash result from hashing the password plus the salt
+        project.password = bcrypt.hashSync(project.password, salt)
 
         // Tries to save project into db
         let savedProject = await project.save()
@@ -234,8 +241,11 @@ const joinProject = async(req, res = response) => {
             })
         }
 
+        // Compare password hashes (to see if password is correct)
+        const validPassword = bcrypt.compareSync(password, project.password)
+
         // Check if passwords match
-        if(project.password !== password) {
+        if(!validPassword) {
             return res.status(401).json({
                 ok: false,
                 msg: 'Error while joining project. Passwords do not match.'
