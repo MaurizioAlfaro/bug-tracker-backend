@@ -16,23 +16,24 @@ const createTicket = async(req, res = response) => {
         // that was obtained with the JWT
         ticket.user = req.uid
         
-        // Add storyline object to ticket
-        await addStoryline(ticket, req)
+        // Updates version control so other users
+        // can know that there has been an update
+        const update_id = await updateVersionControl(
+            ticket.project, 
+            ticket._id,
+            "CREATE TICKET",
+            ticket.user
+        )
+
+        // Add storyline object to ticket (with update_id for the
+        // notification system)
+        await addStoryline(ticket, req, update_id)
         
         // Add ticket id to ticket
         await addTID(ticket)
 
         // Waits for the new ticket to be saved in the db
         const savedTicket = await ticket.save()
-
-        // Updates version control so other users
-        // can know that there has been an update
-        const update_id = await updateVersionControl(
-            savedTicket.project, 
-            savedTicket._id,
-            "CREATE TICKET",
-            savedTicket.user
-        )
 
         // Returns successful response with saved ticket embedded
         return res.status(200).json({
@@ -188,8 +189,7 @@ const updateTicket = async(req, res = response) => {
         // then return an error response
         const project = await Project.findById(ticket.project)
 
-        // Leader and colleagues are stored as uid references only and not as
-        // objects with the name
+        // ***Leader and colleagues are stored as uid references
         const participants = [
             project.leader.toString(),
             ...project.colleagues.map(uid => uid.toString())
@@ -205,18 +205,16 @@ const updateTicket = async(req, res = response) => {
         // Finds and update ticket
         await Ticket.findOneAndUpdate(filter, update)
 
-        const updatedTicket = await addUpdateToStoryline(ticket, req)
-
-
         // Updates version control so other users
         // can know that there has been an update
         const update_id = await updateVersionControl(
-            updatedTicket.project, 
-            updatedTicket._id,
+            ticket.project, 
+            ticket._id,
             "UPDATE TICKET",
             uid
         )
 
+        const updatedTicket = await addUpdateToStoryline(ticket, req, update_id)
 
         // Returns positive response with the updated ticket in it
         return res.status(200).json({

@@ -395,9 +395,9 @@ const readNotification = async(req, res = response) => {
 
         // Check if user has already read a notification
         if (update[0].read_by.includes(uid)) {
-            return res.status(400).json({
-                ok: false,
-                msg: "Error while reading notification. You already read that update"
+            // 304 means not modified
+            return res.status(304).json({
+                ok: true,
             })
         }
 

@@ -71,7 +71,7 @@ const TicketSchema = Schema({
     },
     storyline: {
         type: Schema.Types.Object,
-        ref: 'Project',
+        ref: 'Storyline',
         required: true
     }
 })

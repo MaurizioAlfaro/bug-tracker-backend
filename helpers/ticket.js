@@ -18,7 +18,7 @@ const addTID = async(ticket) => {
 }
 
 // Creates a storyline and adds a reference to the ticket 
-const addStoryline = async(ticket, req) => {
+const addStoryline = async(ticket, req, update_id) => {
 
     // Get all necessary variables from ticket
     const { id, project, date, title, 
@@ -29,6 +29,7 @@ const addStoryline = async(ticket, req) => {
         ticket: id,
         project: project,
         updates: [{
+            update_id,
             user: {
                 uid: req.uid,
                 name: req.name
@@ -50,12 +51,13 @@ const addStoryline = async(ticket, req) => {
     await storyline.save()
 }
 
-const addUpdateToStoryline = async(ticket, req) => {
+const addUpdateToStoryline = async(ticket, req, update_id) => {
     const {_id} = ticket
     const storyline = await Storyline.findById(ticket.storyline._id)
 
     storyline.updates = [
         {
+            update_id,
             user: {
                 name: req.name,
                 uid: req.uid

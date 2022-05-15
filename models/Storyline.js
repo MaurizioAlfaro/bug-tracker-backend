@@ -34,6 +34,10 @@ const StorylineSchema = Schema({
         caption: {
             type: String,
             required: true
+        },
+        update_id: {
+            type: Number,
+            required: false
         }
     }]
 })
