@@ -136,7 +136,6 @@ const readTickets = async(req, res = response) => {
 
     } catch (error) {
         // Return an error if something went wrong
-        console.log(error)
         return res.status(500).json({
             ok: false,
             msg: "Error while retrieving tickets"
@@ -149,33 +148,33 @@ const updateTicket = async(req, res = response) => {
     // Gets the uid from the uid in request, which was obtained
     // with the JWT
     const uid = req.uid
-
+    
     if(req.body.update.type === 'COMMENT') {
         req.body.comments[0].user = {
             uid,
             name: req.name
         }
     }
-
+    
     // Gets the id of the ticket from the parameters in the url
     const id = req.params.id
-
+    
     // Assigns the filter that is going to be used to search for the ticket
     // In this case we will search for _id matching id
     const filter = {
         _id: id
     }
-
+    
     // Defines what is going to be update
     const update = req.body
-
+    
     // Tries to find the ticket and updated it
     try {
         // *** Checks if a ticket with that id exists
         // In  this case we use id and not _id because the method is 
         // already parsing it for us
         const ticket = await Ticket.findById(id)
-
+        
         // If no ticket was found, then return an error response
         if(!ticket) {
             return res.status(404).json({
@@ -183,28 +182,31 @@ const updateTicket = async(req, res = response) => {
                 msg: "No ticket found with that id"
             })
         }
-
-
+        
+        
+        
         // If ticket's project does not contain uid as the leader or a colleague
         // then return an error response
         const project = await Project.findById(ticket.project)
-
+        
         // ***Leader and colleagues are stored as uid references
         const participants = [
             project.leader.toString(),
             ...project.colleagues.map(uid => uid.toString())
         ]
-
+        
         if(!participants.includes(uid)) {
             return res.status(401).json({
                 ok: false,
                 msg: "User is not a team member"
             })
         }
-
+        
         // Finds and update ticket
         await Ticket.findOneAndUpdate(filter, update)
-
+        
+        
+        
         // Updates version control so other users
         // can know that there has been an update
         const update_id = await updateVersionControl(
@@ -212,8 +214,9 @@ const updateTicket = async(req, res = response) => {
             ticket._id,
             "UPDATE TICKET",
             uid
-        )
-
+            )
+        
+        
         const updatedTicket = await addUpdateToStoryline(ticket, req, update_id)
 
         // Returns positive response with the updated ticket in it

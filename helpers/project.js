@@ -3,7 +3,7 @@ const Project = require("../models/Project")
 const updateVersionControl = async( project_id, ticket_id, type, uid ) => {
     const project = await Project.findById(project_id)
     const { version_control } = project 
-
+    
     await Project.findByIdAndUpdate(
         project_id,
         {
@@ -18,8 +18,8 @@ const updateVersionControl = async( project_id, ticket_id, type, uid ) => {
                 ...version_control,
             ]
         }
-    )
-
+        )
+        
     return version_control[0].update_id + 1
 }
 

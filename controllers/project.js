@@ -302,6 +302,8 @@ const joinProject = async(req, res = response) => {
 // For now it just returns all tickets from project tho
 const compareProject = async(req, res = response) => {
 
+    const startTime = performance.now()
+
     const _id = req.params.project_id
     const version_control = Number(req.params.version_control)
 
@@ -337,6 +339,8 @@ const compareProject = async(req, res = response) => {
         })
 
 
+        const endTime = performance.now()
+        console.log(Math.round(endTime - startTime), 'ms used for VC')
         return res.status(200).json({
             ok: true,
             has_updated: true,
