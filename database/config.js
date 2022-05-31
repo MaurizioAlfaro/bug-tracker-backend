@@ -6,8 +6,13 @@ const dbConnection = async() => {
     // Try to establish a connection
     try {
         // Send connection request
-        await mongoose.connect(process.env.DB_CNN)
-
+        if(process.env.NODE_ENV === 'development') {
+            console.log('Running on development')
+            await mongoose.connect(process.env.DB_CNN + 'test')
+        } else {
+            console.log('Running on production')
+            await mongoose.connect(process.env.DB_CNN + 'production')
+        }
         // Logs "DB Online" if connection was successful
         console.log("DB Online")
     } catch (error) {
